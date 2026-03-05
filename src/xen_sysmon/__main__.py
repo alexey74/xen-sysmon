@@ -1,21 +1,15 @@
 import logging
+import os
 import sys
 
-from .icon import Icon
-from .settings_manager import SettingsManager
-
-
-log = logging.getLogger(__name__)
+from .app import Application
 
 
 def main():
     if "-d" in sys.argv:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=getattr(logging, os.getenv("LOGLEV", "DEBUG")))
 
-    config = SettingsManager.from_yaml()
-    log.info("Starting...")
-    icon = Icon(config)
-    icon.run()
+    Application().run()
 
 
 if __name__ == "__main__":

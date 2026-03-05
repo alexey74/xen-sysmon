@@ -18,6 +18,7 @@ ressources/
 data/*.h5
 venv/
 .venv/
+.trunk/
 
 ################################
 ########### PYTHON #############
@@ -142,3 +143,4 @@ venv.bak/
 python-xen-sysmon.conf
 python-xen-sysmon.spec
 .rpmbuild
+.continue

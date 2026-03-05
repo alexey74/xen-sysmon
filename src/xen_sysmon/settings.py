@@ -1,32 +1,40 @@
-import pydantic
+import copy
+from dataclasses import dataclass
+from dataclasses import field
 
 
-class BaseSettings(pydantic.BaseSettings):
-    class Settings:
-        use_attribute_docstrings = True
+def default_field(obj):
+    # pylint: disable=invalid-field-call
+    # ruff: noqa: RUF009
+    return field(default_factory=lambda: copy.deepcopy(obj))
 
 
-class BarSettings(BaseSettings):
+@dataclass
+class Bar:
+    kind: str
     title: str
     foreground: str
-    background: str = "black"
+    background: str = "#494949"
 
 
-class Bars(BaseSettings):
-    cpu: BarSettings = BarSettings("CPU", foreground="green")
-    ram: BarSettings = BarSettings("RAM", foreground="red")
-
-
-class Settings(BaseSettings):
-    name = "Xen System Monitor"
-    title = "Xen System Monitor"
+@dataclass
+class Settings:
+    name: str = "Xen System Monitor"
+    title: str = "Xen System Monitor"
     update_interval: float = 2.0
     notification: bool = True
     """Enable desktop notifications from this app"""
-    icon_size: int = 32
+    width: int = 32
+    height: int = 32
     rotation_angle: float = 90
     main_action: str = "/usr/bin/xfce4-terminal -e xentop -T XenTop"
     background: str = "#1c1c1c"
     memory_threshold: float = 0.8
 
-    bars: dict[str, BarSettings] = Bars().dict()
+    bars: list[Bar] = default_field(
+        [
+            Bar(kind="vcpu", title="VCPU", foreground="#00FF00"),
+            Bar(kind="pcpu", title="PCPU", foreground="#00AAAA"),
+            Bar(kind="vram", title="RAM", foreground="#FF0000"),
+        ]
+    )

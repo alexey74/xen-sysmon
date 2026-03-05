@@ -1,40 +1,54 @@
+import json
 import logging
+from dataclasses import asdict
 from pathlib import Path
 
-from pydantic_yaml import parse_yaml_file_as
-from pydantic_yaml import to_yaml_file
-from xdg.BaseDirectory import load_config_paths
+from xdg.BaseDirectory import load_first_config
 from xdg.BaseDirectory import save_config_path
 
+from .settings import Bar
 from .settings import Settings
 
 
 log = logging.getLogger(__name__)
 
 
-class SettingsManager(Settings):
-    _filename = "settings.yaml"
-    _resource = __package__
+class SettingsManager:
+    _filename = "settings.json"
+    _resource = __package__ or "xen_sysmon"
 
-    @classmethod
-    def from_yaml(cls) -> "SettingsManager":
-        for path in load_config_paths(cls._resource):
-            try:
-                return parse_yaml_file_as(SettingsManager, Path(path) / cls._filename)
-            except IOError as err:
-                log.debug("Failed to read %s: %s", path, err)
+    @staticmethod
+    def custom_decoder(obj):
+        if "kind" in obj:
+            return Bar(**obj)
+        return obj  # fallback for other objects
 
-        # If no files exist, return a Settings instance with default values
-        log.warning("None of the settings files found. Initializing with default values.")
-        _settings = cls()
-        _settings.to_yaml()
-        return _settings
-
-    def to_yaml(self) -> None:
-        path = Path(save_config_path(self._resource)) / self._filename
-
+    def load(self):
+        sdict = {}
+        path = load_first_config(Path(self._resource) / self._filename)
         try:
-            to_yaml_file(path, self, add_comments=True)
+            with open(path, "r", encoding="utf-8") as fp:
+                sdict = json.load(fp, object_hook=self.custom_decoder)
+
+            log.info("Settings loaded from %s", path)
+            log.debug("settings: %s", sdict)
+            return Settings(**sdict)
+
+        except (TypeError, IOError) as err:
+            log.error("Unable to load %s: %s", path, err)
+            settings = Settings()
+            self.store(settings)
+            return settings
+
+    @property
+    def save_config_path(self):
+        return Path(save_config_path(self._resource)) / self._filename
+
+    def store(self, settings) -> None:
+        path = self.save_config_path
+        try:
+            with open(path, "w", encoding="utf-8") as fp:
+                json.dump(asdict(settings), fp, indent=2)
             log.info("Settings saved to %s", path)
         except IOError as err:
             log.error("Unable to write to %s: %s", path, err)

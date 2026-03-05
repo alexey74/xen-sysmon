@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Exec=xen-sysmon
+Name="Xen System Monitor"
+Comment=
+Categories=Utility;System
+Icon=xen-sysmon.svg

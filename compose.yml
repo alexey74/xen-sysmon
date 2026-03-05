@@ -1,16 +1,11 @@
 services:
     xen-sysmon:
-        build: .
+        build:
+            context: .
+            args:
+                - FEDORA_VER
         volumes:
             - .:/src:Z
-            - ./.rpmbuild/RPMS:/root/rpmbuild/RPMS:Z
+            - ./.rpmbuild/RPMS/:/root/rpmbuild/RPMS/:Z
         working_dir: /src
-        command:
-            - /bin/sh
-            - -xec
-            - |
-                python3 -m build
-                pyp2spec -a xen_sysmon --path ./dist
-                cp *.spec /root/rpmbuild/SPECS
-                cp dist/*.tar.gz /root/rpmbuild/SOURCES
-                rpmbuild -ba *.spec
+        command: sh tools/build_rpm.sh

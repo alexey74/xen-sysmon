@@ -2,11 +2,18 @@
 
 compose ?= podman-compose
 UV_VENV_CLEAR ?= 1
+FEDORA_VER ?= 37
+UP_ARGS ?= --no-build --remove-orphans --force-recreate
 
 export
 
-.PHONY: all
-all: rpm
+.PHONY: all rebuild req
+all: test rpm
+
+rebuild:
+	$(MAKE) all UP_ARGS="--build --remove-orphans"
+
+req: requirements.txt requirements-dev.txt
 
 requirements-%.txt: pyproject.toml
 	uv pip compile --group $* --format requirements.txt --output-file $@ pyproject.toml
@@ -29,10 +36,12 @@ pyproject.toml:
 dist: pyproject.toml
 	uv build --package xen_sysmon
 
-.PHONY: test
-test:
+.PHONY: test pre-commit
+test: pre-commit
 	uv run python -m pytest
 
+pre-commit:
+	pre-commit run --all-files
 
 .venv: uv.lock
 	uv venv
@@ -42,25 +51,29 @@ install: .venv
 	uv pip install .
 
 sh:
-	$(compose) run --no-build --rm
+	$(compose) run --rm xen-sysmon bash
 
 .PHONY: rpm
-rpm: | test clean
-	$(compose) up --no-build --remove-orphans --force-recreate
+rpm: | clean Dockerfile
+	$(compose) up $(UP_ARGS)
 
 .PHONY: rpmspec
 rpmspec pkg/python-xen-sysmon.spec pkg/python-xen-sysmon.conf: dist install
 	pyp2spec -a xen_sysmon --path ./dist
 	mv python-xen-sysmon.* dist/
 
-.PHONY: clean distclean
-clean:  ## Clean up cache files and build artifacts
+.PHONY: clean distclean container-clean
+clean:  container-clean ## Clean up cache files and build artifacts
 	find . -type f -name "*.pyc" -delete
 	find . -type d -name "__pycache__" -delete
 	find . -type d -name "*.egg-info" -exec rm -rf {} +
-	rm -rf build/ dist/ .coverage htmlcov/ .pytest_cache/ \
+	rm -rf build/ dist/ .coverage coverage.xml htmlcov/ .*_cache/ \
 		.mypy_cache/ uv.lock pylock.toml \
-		requirements*.txt *.whl python-*.spec python-*.conf
+		requirements*.txt *.whl python-*.spec python-*.conf \
+		.rpmbuild/
 
 distclean: clean
-	rm -rf .rpmbuild/ .venv/
+	rm -rf .venv/
+
+container-clean:
+	$(compose) down --volumes
