@@ -31,7 +31,7 @@ RUN --mount=type=cache,target=/var/cache/dnf \
 # Setup build directory
 RUN rpmdev-setuptree
 
-RUN pip install build specfile pyp2spec
+RUN pip install build specfile pyp2spec uv
 
 # WORKDIR /var/tmp
 # COPY requirements*.txt .

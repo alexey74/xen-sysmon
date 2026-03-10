@@ -7,8 +7,15 @@ UP_ARGS ?= --no-build --remove-orphans --force-recreate
 
 export
 
-.PHONY: all rebuild req
+.PHONY: all rebuild req wheel wheel-in
 all: test rpm
+
+wheel: | clean Dockerfile
+	$(compose) run --rm xen-sysmon make wheel-in
+
+wheel-in: requirements.txt pyproject.toml
+	pip wheel . -w dist
+	cp requirements.txt dist/
 
 rebuild:
 	$(MAKE) all UP_ARGS="--build --remove-orphans"
@@ -70,10 +77,14 @@ clean:  container-clean ## Clean up cache files and build artifacts
 	rm -rf build/ dist/ .coverage coverage.xml htmlcov/ .*_cache/ \
 		.mypy_cache/ uv.lock pylock.toml \
 		requirements*.txt *.whl python-*.spec python-*.conf \
-		.rpmbuild/
+		.rpmbuild/ *.whl
 
 distclean: clean
 	rm -rf .venv/
 
 container-clean:
 	$(compose) down --volumes
+
+
+c-%:
+	$(compose) $* $(A)

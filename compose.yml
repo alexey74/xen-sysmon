@@ -7,5 +7,6 @@ services:
         volumes:
             - .:/src:Z
             - ./.rpmbuild/RPMS/:/root/rpmbuild/RPMS/:Z
+            - ./dist:/src/dist:Z
         working_dir: /src
         command: sh tools/build_rpm.sh
