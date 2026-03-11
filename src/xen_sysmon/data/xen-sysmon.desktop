@@ -6,4 +6,4 @@ Exec=xen-sysmon
 Name="Xen System Monitor"
 Comment=
 Categories=Utility;System
-Icon=xen-sysmon.svg
+Icon=xen-sysmon.png

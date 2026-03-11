@@ -40,3 +40,8 @@ repos:
             language: system
             pass_filenames: false
             args: ["."]
+
+    - repo: https://github.com/hadolint/hadolint
+      rev: v2.14.0
+      hooks:
+        - id: hadolint-docker

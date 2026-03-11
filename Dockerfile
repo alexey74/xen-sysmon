@@ -1,5 +1,7 @@
-ARG FEDORA_VER
+ARG FEDORA_VER=37
 FROM fedora:${FEDORA_VER}
+
+WORKDIR /
 
 # Add RPM Fusion
 RUN --mount=type=cache,target=/var/cache/dnf\
@@ -11,6 +13,7 @@ RUN --mount=type=cache,target=/var/cache/dnf\
 RUN dnf update -y && dnf clean all
 
 # Install build dependencies
+# hadolint ignore=DL3040,DL3041
 RUN --mount=type=cache,target=/var/cache/dnf \
   dnf install -y fedpkg fedora-packager rpmdevtools \
     bison flex gcc gcc-c++ gcc-plugin-devel \
@@ -21,19 +24,13 @@ RUN --mount=type=cache,target=/var/cache/dnf \
     python3-wheel python3-setuptools_scm \
     python3-pyxdg python3-pytest python3-pytest-cov python3-pytest-mock
 
-#RUN dnf install ftp://ftp.icm.edu.pl/vol/rzm5/linux-qubes/repo/yum/r4.2/current-testing/host/fc37/rpm/python3-xen-4.17.6-2.fc37.x86_64.rpm
-
-# RUN dnf repomanage https://yum.qubes-os.org/r$releasever/unstable/host/fc37
-# RUN dnf install -y xen-devel
-
-# RUN dnf clean all
-
 # Setup build directory
 RUN rpmdev-setuptree
+# hadolint ignore=DL3013,DL3059
+RUN pip install --no-cache-dir build specfile pyp2spec uv
 
-RUN pip install build specfile pyp2spec uv
+COPY . /src
 
-# WORKDIR /var/tmp
-# COPY requirements*.txt .
+WORKDIR /src
 
-# RUN pip install -r requirements.txt -r requirements-dev.txt
+CMD [ "/bin/sh", "/src/tools/build_rpm.sh"]

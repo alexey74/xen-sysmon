@@ -3,7 +3,7 @@
 compose ?= podman-compose
 UV_VENV_CLEAR ?= 1
 FEDORA_VER ?= 37
-UP_ARGS ?= --no-build --remove-orphans --force-recreate
+UP_ARGS ?= --remove-orphans --force-recreate
 
 export
 
@@ -75,12 +75,11 @@ clean:  container-clean ## Clean up cache files and build artifacts
 	find . -type d -name "__pycache__" -delete
 	find . -type d -name "*.egg-info" -exec rm -rf {} +
 	rm -rf build/ dist/ .coverage coverage.xml htmlcov/ .*_cache/ \
-		.mypy_cache/ uv.lock pylock.toml \
-		requirements*.txt *.whl python-*.spec python-*.conf \
-		.rpmbuild/ *.whl
+		.mypy_cache/ *.whl python-*.spec python-*.conf \
+		.rpmbuild/
 
 distclean: clean
-	rm -rf .venv/
+	rm -rf .venv/ uv.lock pylock.toml requirements*.txt
 
 container-clean:
 	$(compose) down --volumes

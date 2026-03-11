@@ -31,4 +31,4 @@ The app can be installed from wheels:
  * Run `make wheel`
  * Copy resulting `dist/*` to your dom0
  * Install it there with `pipx`:
-     `pipx install pip-args='--no-index --find-links=.' xen_sysmon`
+    `pipx install --system-site-packages --pip-args='--no-index --find-links=.'  xen-sysmon`

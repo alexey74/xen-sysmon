@@ -3,7 +3,7 @@ services:
         build:
             context: .
             args:
-                - FEDORA_VER
+                - FEDORA_VER=${FEDORA_VER}
         volumes:
             - .:/src:Z
             - ./.rpmbuild/RPMS/:/root/rpmbuild/RPMS/:Z
